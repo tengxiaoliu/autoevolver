@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<title>Coding Agents Are Autonomous Evolvers</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]});"></script>
+<style>
+  :root {
+    --text: #2c2c2c;
+    --text-secondary: #555;
+    --bg: #fafaf7;
+    --accent: #4a6fa5;
+    --accent-light: #e8eef6;
+    --border: #e0ddd8;
+    --code-bg: #f0eeea;
+    --bold-num: #1a1a2e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+
+  body {
+    font-family: 'STIX Two Text', 'Cambria', 'Georgia', 'Times New Roman', serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.75;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .container {
+    max-width: 820px;
+    width: 100%;
+    padding: 60px 0 80px;
+  }
+
+  /* Side navigation */
+  nav {
+    position: sticky;
+    top: 60px;
+    align-self: flex-start;
+    width: 220px;
+    flex-shrink: 0;
+    padding-top: 60px;
+    white-space: nowrap;
+  }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-left: 2px solid var(--border);
+    padding-left: 0;
+  }
+
+  nav a {
+    display: block;
+    padding: 6px 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    border-radius: 4px;
+    margin-left: -2px;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+
+  nav a:hover, nav a.active {
+    color: var(--accent);
+    background: var(--accent-light);
+    border-left-color: var(--accent);
+  }
+
+  /* Hide side nav on small screens */
+  @media (max-width: 1000px) {
+    nav { display: none; }
+    .page-wrapper { padding: 0 16px; }
+  }
+
+  /* Title & subtitle */
+  h1 {
+    font-size: 2.6em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--bold-num);
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 1.05em;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 48px;
+  }
+
+  h2 {
+    font-size: 1.45em;
+    font-weight: 650;
+    color: var(--bold-num);
+    margin-top: 56px;
+    margin-bottom: 16px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  h3 {
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--bold-num);
+    margin-top: 40px;
+    margin-bottom: 12px;
+  }
+
+  p {
+    margin-bottom: 16px;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  a:hover {
+    border-bottom-color: var(--accent);
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--bold-num);
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  /* Results table */
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0 32px;
+    font-size: 0.92em;
+  }
+
+  .results-table th {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+  }
+
+  .results-table th:first-child { border-radius: 6px 0 0 0; }
+  .results-table th:last-child { border-radius: 0 6px 0 0; }
+
+  .results-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .results-table tr:nth-child(even) td {
+    background: var(--accent-light);
+  }
+
+  .results-table tr:last-child td:first-child { border-radius: 0 0 0 6px; }
+  .results-table tr:last-child td:last-child { border-radius: 0 0 6px 0; }
+
+  .results-table .num {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-weight: 600;
+    color: var(--bold-num);
+  }
+
+  .results-table .num-ref {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    color: var(--text-secondary);
+  }
+
+  .results-table .diff,
+  .inline-num .diff {
+    color: #1a7f37;
+    font-weight: 700;
+    background: #dafbe1;
+    padding: 1px 2px;
+    border-radius: 3px;
+  }
+
+  .results-table .diff-ref,
+  .inline-num .diff-ref {
+    color: #666;
+    font-weight: 600;
+    background: #e8e8e8;
+    padding: 1px 2px;
+    border-radius: 3px;
+  }
+
+  .inline-num {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.92em;
+  }
+
+  /* Comparison table */
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0 32px;
+    font-size: 0.92em;
+  }
+
+  .comparison-table th {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    padding: 12px 16px;
+  }
+
+  .comparison-table th:first-child {
+    text-align: left;
+    border-radius: 6px 0 0 0;
+  }
+  .comparison-table th:last-child { border-radius: 0 6px 0 0; }
+
+  .comparison-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .comparison-table td:first-child {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .comparison-table tr:nth-child(even) td {
+    background: var(--accent-light);
+  }
+
+  .comparison-table tr:last-child td:first-child { border-radius: 0 0 0 6px; }
+  .comparison-table tr:last-child td:last-child { border-radius: 0 0 6px 0; }
+
+  .comparison-table tr.highlight td {
+    background: var(--accent-light);
+    font-weight: 600;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  /* Ordered & unordered lists */
+  ol, ul {
+    margin: 12px 0 20px 24px;
+  }
+
+  li {
+    margin-bottom: 8px;
+  }
+
+  /* Blockquotes — agent conversation */
+  blockquote {
+    border-left: 3px solid var(--accent);
+    background: var(--code-bg);
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9em;
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+
+  blockquote p {
+    margin-bottom: 8px;
+  }
+
+  blockquote p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Inline code */
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.88em;
+  }
+
+  /* Images */
+  img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 24px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Collapsible details */
+  details {
+    margin: 20px 0;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    background: var(--code-bg);
+    overflow: hidden;
+  }
+
+  details summary {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--accent);
+    user-select: none;
+  }
+
+  details summary:hover {
+    background: var(--accent-light);
+  }
+
+  details[open] summary {
+    border-bottom: 1px solid var(--border);
+  }
+
+  details blockquote {
+    border-left: none;
+    border-radius: 0;
+    margin: 0;
+    background: transparent;
+  }
+
+  /* TL;DR box */
+  .tldr-box {
+    background: var(--accent-light);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin: 8px 0 32px;
+  }
+
+  .tldr-box h2 {
+    margin-top: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  /* Horizontal rule */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0 24px;
+  }
+
+  /* Footer */
+  .footer {
+    font-size: 0.9em;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  .footer-notes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .footer-notes li {
+    font-size: 0.9em;
+    font-style: italic;
+    color: var(--text-secondary);
+    padding-left: 1.6em;
+    position: relative;
+    margin-bottom: 4px;
+  }
+
+  .footer-notes li::before {
+    content: counter(list-item) ".";
+    position: absolute;
+    left: 0;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* Numbered section: accent-colored counters for <p> inside a wrapper */
+  .numbered-section {
+    counter-reset: numbered;
+  }
+
+  .numbered-section > p {
+    counter-increment: numbered;
+    padding-left: 32px;
+    position: relative;
+  }
+
+  .numbered-section > p::before {
+    content: counter(numbered) ".";
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Don't count <details> blocks inside numbered sections */
+  .numbered-section > details {
+    margin-left: 32px;
+  }
+
+  /* Setup list special styling */
+  .setup-list {
+    list-style: none;
+    margin-left: 0;
+    counter-reset: setup;
+  }
+
+  .setup-list li {
+    counter-increment: setup;
+    padding-left: 32px;
+    position: relative;
+  }
+
+  .setup-list li::before {
+    content: counter(setup) ".";
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Phase list */
+  .phase-list {
+    list-style: none;
+    margin-left: 0;
+    counter-reset: phase;
+  }
+
+  .phase-list li {
+    counter-increment: phase;
+    padding-left: 32px;
+    position: relative;
+  }
+
+  .phase-list li::before {
+    content: counter(phase) ".";
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Score progression */
+  .score-list {
+    list-style: none;
+    margin-left: 0;
+  }
+
+  .score-list li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+  }
+
+  .score-list li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body { font-size: 15px; }
+    .container { padding: 32px 16px 48px; }
+    h1 { font-size: 2em; }
+    .results-table, .comparison-table { font-size: 0.82em; }
+    .results-table td, .results-table th,
+    .comparison-table td, .comparison-table th {
+      padding: 8px 10px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+<div class="container">
+
+<h1>Coding Agents Are<br><span style="color: var(--accent);">Autonomous Evolvers</span></h1>
+<p class="subtitle">What happens when you hand a coding agent an algorithmic optimization problem and tell it to keep improving? It outperforms previous SOTA set by published works, with minimal setup, and no explicit evolution framework.</p>
+<p style="font-size: 1.05em; color: var(--bold-num); font-weight: 500; margin-top: -28px; margin-bottom: 6px; letter-spacing: 0.02em;"><a href="https://tengxiaoliu.github.io/about/" style="color: inherit; border-bottom: 1px solid var(--border); text-decoration: none;">Tengxiao Liu</a> &ensp; <a href="https://ayyyq.github.io/" style="color: inherit; border-bottom: 1px solid var(--border); text-decoration: none;">Yuqing Yang</a> &ensp; <a href="https://xiye17.github.io/" style="color: inherit; border-bottom: 1px solid var(--border); text-decoration: none;">Xi Ye</a> &ensp; <a href="https://www.cs.princeton.edu/~danqic/" style="color: inherit; border-bottom: 1px solid var(--border); text-decoration: none;">Danqi Chen</a></p>
+<p style="font-size: 0.85em; color: var(--text-secondary); margin-top: 0; margin-bottom: 48px;">March 23, 2026 &ensp;&middot;&ensp; ~8 min read</p>
+
+<div class="tldr-box">
+<h2 id="tldr">TL;DR</h2>
+
+<ul>
+  <li><strong>No evolution framework needed</strong>: a coding agent with a problem description, an initial solution, and an evaluation script can autonomously iterate to competitive results.</li>
+  <li><strong>Aspiration prompting works</strong>: agents tend to satisfice; a one-line prompt raising the target score consistently unlocks deeper optimization.</li>
+  <li><strong>Not a replacement</strong>: coding agents fall short on controllability and reproducibility compared to purpose-built frameworks.</li>
+</ul>
+</div>
+
+<table class="results-table">
+  <thead>
+    <tr>
+      <th>Problem</th>
+      <th>Claude Code</th>
+      <th>Published SOTA</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Circle Packing</strong><br>(26 circles, maximize &Sigma;r&uarr;)</td>
+      <td class="num"><strong>2.63598<span class="diff">844</span></strong></td>
+      <td class="num-ref">2.63598<span class="diff-ref">308</span><sup><em>&theta;</em></sup></td>
+    </tr>
+    <tr>
+      <td><strong>Erd&#337;s Min Overlap</strong><br>(minimize C<sub>5</sub>&darr;)</td>
+      <td class="num"><strong>0.3808<span class="diff">6945</span></strong></td>
+      <td class="num-ref">0.3808<span class="diff-ref">7532</span><sup><em>t</em></sup></td>
+    </tr>
+    <tr>
+      <td><strong>First Autocorrelation Inequality</strong><br>(minimize C<sub>1</sub>&darr;)</td>
+      <td class="num"><strong>1.50286289<span class="diff">69</span></strong></td>
+      <td class="num-ref">1.50286289<span class="diff-ref">83</span><sup><em>t</em></sup></td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size: 0.82em; color: var(--text-secondary); margin-top: -16px;"><sup><em>&theta;</em></sup> ThetaEvolve &ensp; <sup><em>t</em></sup> TTT-Discover</p>
+
+<h2 id="background">Background</h2>
+
+<p>Recent systems like <a href="https://arxiv.org/abs/2506.13131"><strong>AlphaEvolve</strong></a><sup><a href="#ref1">[1]</a></sup>, <a href="https://arxiv.org/abs/2511.23473"><strong>ThetaEvolve</strong></a><sup><a href="#ref2">[2]</a></sup>, and <a href="https://arxiv.org/abs/2601.16175"><strong>TTT-Discover</strong></a><sup><a href="#ref3">[3]</a></sup> have demonstrated impressive results by combining LLMs with evolutionary frameworks to discover and improve algorithms. These are well-engineered systems with explicit population management, selection, and mutation pipelines.</p>
+
+<p>Meanwhile, coding agents like Claude Code have become increasingly capable: they can write and execute code, analyze results, search the web, and run parallel tasks, all within a single long-running session. We were curious: <strong>what if we just gave a coding agent an optimization problem directly, without any evolutionary scaffolding?</strong></p>
+
+<p>We chose three problems commonly used to benchmark evolutionary agent systems: circle packing, Erd&#337;s minimum overlap, and the first autocorrelation inequality. All three have published results from AlphaEvolve, ThetaEvolve, or TTT-Discover, and they cover different optimization flavors: continuous optimization, combinatorial search, and function construction.</p>
+
+<h2 id="setup">Our Setup</h2>
+
+<p>Our experimental setup was deliberately minimal:</p>
+
+<ol class="setup-list">
+  <li><strong>Problem description</strong>: A natural language specification of the task and optimization objective</li>
+  <li><strong>Initial solution</strong>: A naive starting implementation</li>
+  <li><strong>Evaluation script</strong>: A function that scores solutions and validates correctness</li>
+  <li><strong>Aspiration prompting</strong>: When the agent appeared to plateau, a one-sentence prompt telling it higher scores exist (<a href="#aspiration-prompting">see next section</a>)</li>
+</ol>
+
+<p>That&rsquo;s it. No population of programs. No genetic operators. No explicit evolutionary loop. We used <strong>Claude Code (Opus 4.6)</strong> and let it run autonomously in skip-permissions mode.</p>
+
+<img src="assets/setup.png" alt="Minimal experimental setup: problem description, initial solution, evaluation script, and aspiration prompt" style="max-width: 60%; display: block; margin: 24px auto;">
+
+<h2 id="aspiration-prompting">Overcoming Agent Laziness: Aspiration Prompting</h2>
+
+<p>One consistent and interesting behavior we observed is: <em>the agent could be lazy</em>. On the circle packing problem, for instance, it hit a score of 2.50 and essentially declared victory &mdash; &ldquo;this is a good result,&rdquo; it said, ready to wrap up. The agent had no idea that 2.636 was reachable.</p>
+
+<p>We tried the simplest possible solution. We just told it:</p>
+
+<blockquote style="border-left-color: var(--accent); background: var(--accent-light); font-size: 1em; font-style: italic; color: var(--bold-num); font-weight: 500;">
+  <p>&ldquo;The current SOTA on this problem is 2.6359. I believe you can beat it.&rdquo;</p>
+</blockquote>
+
+<p>It worked. The agent didn&rsquo;t just try harder; it switched to qualitatively different strategies (SLSQP, differential evolution, iterated perturbation chains) that it hadn&rsquo;t previously considered. We call this <strong>aspiration prompting</strong>: raising the agent&rsquo;s target to prevent premature convergence.</p>
+
+<p>The same pattern appeared on the Erd&#337;s problem. After reaching C<sub>5</sub>=0.38087447, the agent declared &ldquo;Final result,&rdquo; called it a verified local optimum, and stopped. We told it:</p>
+
+<blockquote style="border-left-color: var(--accent); background: var(--accent-light); font-size: 1em; font-style: italic; color: var(--bold-num); font-weight: 500;">
+  <p>&ldquo;Great let&rsquo;s try more rounds. Aiming for larger improvements!&rdquo;</p>
+</blockquote>
+
+<p>Within minutes, the agent discovered that higher discretization (n) yields better solutions, a direction it had never explored. The margin over the competitor expanded from 0.85&times;10<sup>&minus;6</sup> to <strong>5.87&times;10<sup>&minus;6</sup></strong>: a 7&times; improvement unlocked by a single sentence.</p>
+
+<details>
+  <summary>Agent trajectory: Erd&#337;s problem, satisficing &rarr; intervention &rarr; breakthrough</summary>
+  <blockquote>
+    <p>[231] <strong>Final result: C5 = 0.38087447, beating the competitor&rsquo;s 0.38087532.</strong> The solution is verified to be at a local optimum (SLSQP, perturbation search, and subgradient all confirm no further improvement possible). <em>[agent stops]</em></p>
+    <p>[252] <strong>User: &ldquo;Great let&rsquo;s try more rounds. Aiming for larger improvements!&rdquo;</strong></p>
+    <p>[319] All 5 basin pipelines converge to 0.3809+ at n=180. This is extremely comprehensive evidence that our C5=0.38087447 solution is a very strong local (possibly global) optimum. <em>[still skeptical]</em></p>
+    <p>[321] Let me try one final creative approach: use the best n=180 solution but with a non-standard upsampling to a non-multiple n, then SLSQP.</p>
+    <p>[324] <strong>n=270 achieved C5=0.38087278, that BEATS our current best!</strong> And the trend is clear: higher n &rarr; lower C5.</p>
+    <p>[353] n=360 achieved C5=0.38087064, another big improvement!</p>
+    <p>[387] Before: C5=0.38087447 (beating competitor by 0.00000085). After: <strong>C5=0.38087064 (beating competitor by 0.00000468, 5.5&times; larger margin!)</strong></p>
+    <p style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 0;">The agent continued pushing to n=450, 600, 750 over the next 12 hours, ultimately reaching C<sub>5</sub>=0.38086945.</p>
+  </blockquote>
+</details>
+
+<p>This suggests that coding agents, like humans, tend to <strong>satisfice</strong>, settling for &ldquo;good enough.&rdquo; Simply raising the aspiration level can unlock significantly more effort, and the intervention need not be sophisticated: a single sentence was enough to push the agent past its plateau.</p>
+
+<h2 id="results">Results</h2>
+
+<p>As shown in the <a href="#tldr">table above</a>, the agent achieved state-of-the-art results on all three problems.</p>
+
+<p>On the <strong>circle packing</strong> problem, it edged past ThetaEvolve&rsquo;s best known result: <span class="inline-num"><strong>2.63598<span class="diff">844</span></strong> vs 2.63598<span class="diff-ref">308</span></span>. On the <strong>Erd&#337;s minimum overlap</strong> problem, it improved beyond all published results: <span class="inline-num"><strong>0.3808<span class="diff">6945</span></strong> vs 0.3808<span class="diff-ref">7532</span></span>. On the <strong>AC1</strong> problem, the agent also achieved a new state-of-the-art: <span class="inline-num"><strong>1.50286289<span class="diff">69</span></strong> vs 1.50286289<span class="diff-ref">83</span></span>.</p>
+
+<h2 id="behaviors">What Claude Code Actually Did</h2>
+
+<p>Beyond the scores, the agent exhibits several interesting <em>emergent behaviors</em>. By analyzing the full conversation trajectories (119 hours, 2,762 messages, 1,486 tool calls across all sessions), we observed several striking patterns.</p>
+
+<h3>1. Strategic Web Research</h3>
+
+<p>The agent frequently searched the web, including fetching ArXiv papers, GitHub repositories, and online databases; but never blindly copied what it found. Instead, it used web research in two distinct ways:</p>
+
+<ul>
+  <li><strong>As a fallback when stuck</strong>: after hitting a score plateau, the agent would launch web searches alongside parallel optimization experiments, looking for new techniques or known results to break through.</li>
+  <li><strong>Spontaneously while waiting</strong>: when background optimization tasks were running, the agent would fill idle time by searching for theoretical insights or competitor results to inform its next move.</li>
+</ul>
+
+
+
+<p>How the agent used search results depended on context. When it found a promising new approach, it would adopt the idea and build on it &mdash; on the circle packing problem, discovering a GitHub issue describing SLSQP joint optimization led the agent to restructure its solver, jumping to 2.619. But when its own solution was already ahead, it simply moved on: by message 507, it noted that the best published result was lower than its own and continued optimizing independently.</p>
+
+<details>
+  <summary>Agent trajectory: Circle Packing web research</summary>
+  <blockquote>
+    <p>[37] ...I&rsquo;m <strong>stuck at 2.57</strong>, likely because the simulated annealing is converging to a local optimum or the center positions aren&rsquo;t optimal. Let me try <strong>looking up the known optimal coordinates</strong> for n=26 from Packomania... &rarr; fail</p>
+    <p>[144] ...Good, I&rsquo;ve launched 4 parallel experiments: 1. <strong>Web search</strong> for known optimal n=26 packing coordinates (agent task)...</p>
+    <p>[157] Interesting! I found <strong>a GitHub issue</strong> that mentions a circle packing result of 2.635977 for n=26! Let me check that.</p>
+    <p>[171] ...The key insight from that issue is that <strong>they used a different approach</strong>: jointly optimizing centers AND radii with SLSQP, rather than our approach of LP for radii and NM/Powell for centers. That&rsquo;s a fundamentally different formulation that could work better... &rarr; 2.619</p>
+    <p>[507] Interesting &mdash; the <strong>OpenEvolve best program only achieves ~2.635, which is lower than our 2.635988</strong>. Let me check the progress of my experiments.</p>
+  </blockquote>
+</details>
+
+
+<h3>2. Spontaneous Parallel Exploration</h3>
+
+<p>Early in each session, the agent would try one optimization approach at a time. As the problem got harder, it <strong>autonomously shifted to parallel execution</strong>, sometimes running 5&ndash;10 different strategies as background tasks simultaneously. On the Erd&#337;s problem alone, the agent launched <strong>174 background tasks</strong> and spawned <strong>9 sub-agents</strong> over a 40-hour session.</p>
+
+<p>In evolutionary terms, this is improvised population management: the <strong>context window served as short-term memory</strong> tracking which strategies worked, while the <strong>file system served as long-term storage</strong>. On the Erd&#337;s problem, for example, the agent created a <code>promising_solutions/</code> directory with <strong>110+ files</strong> functioning as a hand-rolled solution archive.</p>
+
+<p>The agent even diagnosed resource contention between parallel processes: when two optimizers were writing to the same output file, it identified that the weaker process was overwriting the stronger one&rsquo;s results, <strong>killed the inferior process</strong>, and immediately saw improved scores.</p>
+
+<details>
+  <summary>Agent trajectory: Erd&#337;s problem, parallel search and process selection</summary>
+  <blockquote>
+    <p>[255] Let me <strong>launch multiple parallel workers with diverse initializations</strong>. I&rsquo;ll run 4 workers in parallel, each trying different initialization strategies.</p>
+    <p>[281] <strong>All top 5 results are from perturbations of our known best</strong>. Random initializations only reach ~0.381+. <strong>This confirms our current basin is optimal.</strong></p>
+    <p>[1280] Both processes write to the same file. The <strong>better process&rsquo;s saves get overwritten by the worse one</strong>. This explains why we rarely see improvement.</p>
+    <p>[1283] <strong>I should stop the worse process</strong> so only the better one saves snapshots.</p>
+    <p>[1291] <strong>C5 dropped to 0.380869458</strong> &mdash; a big improvement! Killing the worse process worked perfectly.</p>
+  </blockquote>
+</details>
+
+<h3>3. Multi-Phase Strategy Evolution</h3>
+
+<p>Across all problems, the agent&rsquo;s approach evolved through recognizable phases:</p>
+
+<ol class="phase-list">
+  <li><strong>Exploration</strong>: Try standard optimization methods (gradient descent, simulated annealing)</li>
+  <li><strong>Refinement</strong>: Tune hyperparameters, increase problem scale</li>
+  <li><strong>Plateau recognition</strong>: Detect diminishing returns, consider fundamentally different approaches</li>
+  <li><strong>Research pivot</strong>: Search literature and repositories for state-of-the-art techniques</li>
+  <li><strong>Synthesis</strong>: Combine external insights with accumulated knowledge</li>
+  <li><strong>Endgame optimization</strong>: Embed best solutions as warm starts, run targeted local search</li>
+</ol>
+
+<details>
+  <summary>Example: Circle Packing score progression (0.96 &rarr; 2.63598844)</summary>
+  <ul class="score-list">
+    <li>Naive ring arrangement: <strong>0.96</strong></li>
+    <li>LP-based + simulated annealing: <strong>2.50</strong></li>
+    <li>Multi-start optimization: <strong>2.555</strong></li>
+    <li>SLSQP joint optimization (breakthrough): <strong>2.619</strong></li>
+    <li>Iterated perturbation chains: <strong>2.63598844</strong></li>
+  </ul>
+</details>
+
+<img src="assets/score_progression.png" alt="Score progression for circle packing">
+
+<!-- Erdős score progression + eureka moment trajectory (commented out for brevity)
+<p>On the Erd&#337;s problem, the agent underwent a similar but distinct phase evolution &mdash; arriving at its key breakthrough by discovering that higher discretization resolution unlocked better solutions:</p>
+<ul class="score-list">
+  <li>Baseline subgradient descent: <strong>0.4301</strong></li>
+  <li>SLSQP optimizer (breakthrough): <strong>0.38116</strong></li>
+  <li>Binary initialization &rarr; new basin: <strong>0.38089</strong></li>
+  <li>Multi-resolution pipeline (n=180&rarr;360&rarr;600&rarr;750): <strong>0.38087</strong></li>
+</ul>
+<details>
+  <summary>Agent trajectory: Erd&#337;s problem, the &ldquo;higher n&rdquo; eureka moment</summary>
+  <blockquote>
+    <p>[319] All 5 basin pipelines converge to 0.3809+ at n=180 &mdash; significantly worse than our 0.38087447. This is extremely comprehensive evidence that our C5=0.38087447 solution is a very strong local (possibly global) optimum.</p>
+    <p>[321] Let me try one final creative approach &mdash; use the best n=180 solution but with a non-standard upsampling to a non-multiple n, then SLSQP.</p>
+    <p>[324] n=270 achieved C5=0.38087278 &mdash; that BEATS our current best of 0.38087447! And the trend is clear: higher n &rarr; lower C5.</p>
+    <p>[327] Excellent! n=300 achieved C5=0.38087190 &mdash; significantly better! The trend continues: higher n &rarr; better C5.</p>
+    <p>[377] | n=180: 0.38087447 (Previous best) | n=270: 0.38087278 | n=300: 0.38087190 | n=360: 0.38087064 (Current best) | n=450: Running... |</p>
+  </blockquote>
+</details>
+-->
+
+<p>Each phase required a qualitatively different strategy, and the agent navigated these transitions autonomously, recognizing when to abandon a failing approach and when to double down on a promising one.</p>
+
+<h3>4. Self-Correction and Reward Hacking Detection</h3>
+
+<p>Interestingly, the agent sometimes caught itself gaming the evaluation. On the circle packing problem, it discovered that L-BFGS-B was producing solutions that appeared to improve the score by <strong>exploiting LP solver tolerance</strong>, finding slightly infeasible configurations that passed relaxed constraints. The agent detected this, reasoned about why it was happening, and corrected it.</p>
+
+<p>On the AC1 problem, the agent engaged in a sophisticated form of efficiency hacking: it monkey-patched <code>np.convolve</code> with <code>scipy.signal.fftconvolve</code> (O(n log n) vs O(n&sup2;)), enabling it to work with n=30,000 &mdash; a problem size that would hang with the standard implementation. The agent explicitly debated whether this &ldquo;counted as cheating&rdquo; before proceeding. (It doesn&rsquo;t &mdash; the mathematical result is identical, just faster.)</p>
+
+<!-- NEW: Erdős self-correction on score comparison direction (from session 84bac982) -->
+<p>On the Erd&#337;s problem, the agent exhibited a more basic but equally telling form of self-correction: it repeatedly confused the optimization direction (C<sub>5</sub> is a <em>minimization</em> target), declared victory prematurely, then caught and corrected itself &mdash; twice in quick succession:</p>
+
+<details>
+  <summary>Agent trajectory: Erd&#337;s problem, catching its own score comparison error</summary>
+  <blockquote>
+    <p>[154] C5 = 0.38087633 &mdash; this beats the competitor&rsquo;s 0.38087532! <strong>Wait, 0.38087633 > 0.38087532, so it&rsquo;s slightly worse</strong>. The difference is 0.0000010.</p>
+    <p>[161] C5 = 0.38087579 &mdash; this beats the competitor&rsquo;s 0.38087532! <strong>Wait... 0.38087579 > 0.38087532. Still 0.0000005 above</strong>. Let me try to squeeze out that last bit by running more perturbation search.</p>
+  </blockquote>
+</details>
+<!-- END NEW -->
+
+<h2 id="falls-short">Where This Falls Short</h2>
+
+<p>The results are encouraging, but using a coding agent comes with some practical limitations. We observed several recurring issues across these runs.</p>
+
+<div class="numbered-section">
+<p><strong>Black-box scaffolding.</strong> Claude Code's internal planning, tool orchestration, and context management are not directly visible or controllable. We cannot inspect or adjust how it decides to pivot strategies, allocate parallel tasks, or manage its context window.</p>
+
+<p><strong>Reproducibility.</strong> Each run is a unique conversation trajectory shaped by stochastic sampling, context-dependent decisions, and real-time web results. We cannot guarantee that a second run on the same problem would follow the same path or reach the same score.</p>
+
+<p><strong>Approach cycling.</strong> As the context window slides forward, the agent loses track of previously tried methods and revisits them as if they were new, wasting compute. A persistent strategy registry recording each method&rsquo;s outcome would eliminate this, but coding agents currently lack such a mechanism.</p>
+
+<details>
+  <summary>Example: L-BFGS-B revisited across sessions</summary>
+  <blockquote>
+    <p>On circle packing, the agent proposed L-BFGS-B at message 62 (&ldquo;<em>explore using scipy&rsquo;s direct optimization methods like L-BFGS-B</em>&rdquo;) but pivoted to simulated annealing instead. <strong>486 messages later</strong>, at message 548, it declared &ldquo;<em>let me try something I haven&rsquo;t tried yet: L-BFGS-B</em>&rdquo; &mdash; unaware it had already considered and rejected the method.</p>
+    <p>On the AC1 problem, the pattern was more severe: L-BFGS-B was executed <strong>15+ times across 586 messages</strong>, each time producing negative conclusions &mdash; &ldquo;<em>too slow</em>&rdquo;, &ldquo;<em>only marginally improves</em>&rdquo;, &ldquo;<em>no improvement</em>&rdquo; &mdash; yet the agent continued to retry. At message 521, the agent briefly caught itself: &ldquo;<em>Actually wait, I showed earlier that <strong>L-BFGS-B also can&rsquo;t improve it</strong>.</em>&rdquo; This rare moment of self-awareness confirms that prior conclusions are routinely lost.</p>
+  </blockquote>
+</details>
+
+<p><strong>Parallelism mismanagement.</strong> The agent can spawn concurrent tasks but struggles to manage them: task outputs were frequently ignored, obsolete processes were rarely terminated, and redundant tasks were launched for the same purpose.</p>
+
+<details>
+  <summary>Example: parallelism issues across sessions</summary>
+  <blockquote>
+    <p>On the Erd&#337;s problem, <strong>nearly 60% of 174 task completion notifications were never read</strong>. The agent launched four redundant monitoring sub-agents for the same process with near-identical prompts. An n=900 optimization run that produced worse results than the already-known n=600 solution was <strong>never terminated</strong>. When 18 task notifications arrived in rapid succession, the agent cherry-picked one result and dismissed the rest as &ldquo;<em>old tasks</em>.&rdquo;</p>
+    <p>On the AC1 problem, the agent spent approximately <strong>40 messages polling background processes that produced no output</strong> due to Python&rsquo;s stdout buffering, repeatedly observing &ldquo;<em>all output files are 0 bytes</em>&rdquo; without ever killing the stalled processes.</p>
+  </blockquote>
+</details>
+
+<p><strong>Web search and fair comparison.</strong> The agent freely searched the web, fetching papers, repositories, and known results, which means it had access to information that may not be available to other systems. We are not claiming that this approach replaces any existing framework; rather, we find it interesting that a general-purpose coding agent can reach competitive results at all.</p>
+</div>
+
+<h2 id="takeaways">Takeaways</h2>
+
+<div class="numbered-section">
+<p><strong>Evolutionary behaviors emerge without evolutionary frameworks.</strong> Without explicit population management, selection operators, or mutation pipelines, the coding agent arrived at functionally similar behaviors through its context window, parallel tasks, and autonomous strategy pivots.</p>
+
+<p><strong>Aspiration prompting works.</strong> Agents tend to satisfice. When the agent declared &ldquo;Final result&rdquo; and stopped, a single sentence of encouragement was enough to restart exploration and unlock dramatically better performance.</p>
+
+<p><strong>Significant limitations remain.</strong> The agent&rsquo;s behavior is a black box, results are not reproducible across runs, and the agent repeatedly revisits strategies it has already tried and rejected. Coding agents are not a replacement for purpose-built evolution frameworks that offer control, reproducibility, and scalability.</p>
+</div>
+
+<hr>
+
+<h2 id="appendix">Appendix: Problem Definitions</h2>
+
+<h3>Circle Packing (n=26)</h3>
+
+<p>Pack 26 non-overlapping circles inside a unit square, maximizing the sum of their radii. Formally: find centers \((x_i, y_i)\) and radii \(r_i\) for \(i = 1, \ldots, 26\) such that:</p>
+
+<ul>
+  <li>Each circle is contained within \([0,1]^2\): \(\;r_i \le x_i \le 1-r_i\), \(\;r_i \le y_i \le 1-r_i\)</li>
+  <li>No two circles overlap: \(\;\sqrt{(x_i-x_j)^2+(y_i-y_j)^2} \ge r_i+r_j\) for all \(i \ne j\)</li>
+  <li>Maximize: \(\;\sum_i r_i\)</li>
+</ul>
+
+<h3>Erd&#337;s Minimum Overlap Problem</h3>
+
+<p>Partition \(\{1, 2, \ldots, 2n\}\) into two equal-size sets \(A\) and \(B\). For each integer \(k\), let \(M_k\) be the number of solutions to \(a_i - b_j = k\). The problem is to bound \(c = \lim_{n\to\infty} M(n)/n\), where \(M(n) = \min_{A,B} \max_k M_k\).</p>
+
+<p>Following prior work, we optimize step functions \(f\) describing the density of \(A\) throughout \([1, 2n]\), with \(f(x) \in [0, 1]\) and \(\int f = 1\). The objective is to minimize \(C_5 = \max_k \int f(x)(1-f(x+k))\,dx\), which yields valid upper bounds on \(c\) without constructing explicit partitions for large \(n\). Lower values are better.</p>
+
+<h3>First Autocorrelation Inequality</h3>
+
+<p>For nonnegative \(f\) supported on \([-1/4, 1/4]\), \(C_1\) is the largest constant such that:</p>
+
+$$\max_{|t|\le 1/2} (f * f)(t) \;\ge\; C_1 \left(\int f\right)^2$$
+
+<p>holds for all such \(f\). The goal is to certify the tightest upper bound on \(C_1\): any valid construction \(f\) certifies \(C_1 \le \|f * f\|_\infty / \left(\int f\right)^2\). Lower values are better. This problem arises in additive combinatorics, where tighter bounds on \(C_1\) sharpen limits on how large a set can be while avoiding repeated additive patterns.</p>
+
+
+<hr>
+
+<ol class="footer-notes">
+  <li>The solutions for all three problems are available in the <a href="https://github.com/tengxiaoliu/autoevolver/tree/main/results"><code>results/</code></a> directory of <a href="https://github.com/tengxiaoliu/autoevolver">this repository</a>.</li>
+  <li>Circle packing scores are evaluated with a feasibility tolerance of 1e&minus;6, consistent with ThetaEvolve&rsquo;s evaluator.</li>
+  <li>Conversation trajectories were captured using <a href="https://github.com/peteromallet/dataclaw">DataClaw</a> and analyzed across 119 hours of autonomous agent computation.</li>
+</ol>
+
+<h3 style="margin-top: 32px;">References</h3>
+<ol style="font-size: 0.9em; line-height: 1.6;">
+  <li id="ref1">Novikov, Alexander et al. &ldquo;AlphaEvolve: A coding agent for scientific and algorithmic discovery.&rdquo; <em>ArXiv</em> abs/2506.13131 (2025).</li>
+  <li id="ref2">Wang, Yiping et al. &ldquo;ThetaEvolve: Test-time Learning on Open Problems.&rdquo; <em>ArXiv</em> abs/2511.23473 (2025).</li>
+  <li id="ref3">Yuksekgonul, Mert et al. &ldquo;Learning to Discover at Test Time.&rdquo; <em>ArXiv</em> abs/2601.16175 (2026).</li>
+</ol>
+
+</div>
+<nav>
+  <ul>
+    <li><a href="#tldr">TL;DR</a></li>
+    <li><a href="#background">Background</a></li>
+    <li><a href="#setup">Our Setup</a></li>
+    <li><a href="#aspiration-prompting">Aspiration Prompting</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#behaviors">What Claude Code Did</a></li>
+    <li><a href="#falls-short">Where This Falls Short</a></li>
+    <li><a href="#takeaways">Takeaways</a></li>
+    <li><a href="#appendix">Appendix</a></li>
+  </ul>
+</nav>
+</div>
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('h2[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>
