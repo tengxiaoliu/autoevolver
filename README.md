@@ -1,4 +1,4 @@
-# Coding Agents Are Autonomous Evolvers
+# Can Coding Agents Optimize Algorithms Autonomously?
 
 [Tengxiao Liu](https://tengxiaoliu.github.io/about/) &nbsp; [Yuqing Yang](https://ayyyq.github.io/) &nbsp; [Xi Ye](https://xiye17.github.io/) &nbsp; [Danqi Chen](https://www.cs.princeton.edu/~danqic/)
 
