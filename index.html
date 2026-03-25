@@ -520,6 +520,7 @@
       <th>Problem</th>
       <th>Claude Code</th>
       <th>Published SOTA</th>
+      <th>CC Runtime</th>
     </tr>
   </thead>
   <tbody>
@@ -527,16 +528,19 @@
       <td><strong>Circle Packing</strong><br>(26 circles, maximize &Sigma;r&uarr;)</td>
       <td class="num"><strong>2.63598<span class="diff">844</span></strong></td>
       <td class="num-ref">2.63598<span class="diff-ref">308</span><sup><em>&theta;</em></sup></td>
+      <td class="num">16.6 h</td>
     </tr>
     <tr>
       <td><strong>Erd&#337;s Min Overlap</strong><br>(minimize C<sub>5</sub>&darr;)</td>
       <td class="num"><strong>0.3808<span class="diff">6945</span></strong></td>
       <td class="num-ref">0.3808<span class="diff-ref">7532</span><sup><em>t</em></sup></td>
+      <td class="num">30.8 h</td>
     </tr>
     <tr>
       <td><strong>First Autocorrelation Inequality</strong><br>(minimize C<sub>1</sub>&darr;)</td>
       <td class="num"><strong>1.50286289<span class="diff">69</span></strong></td>
       <td class="num-ref">1.50286289<span class="diff-ref">83</span><sup><em>t</em></sup></td>
+      <td class="num">40.4 h</td>
     </tr>
   </tbody>
 </table>
@@ -544,7 +548,7 @@
 
 <h2 id="background">Background</h2>
 
-<p>Recent systems like <a href="https://arxiv.org/abs/2506.13131"><strong>AlphaEvolve</strong></a><sup><a href="#ref1">[1]</a></sup>, <a href="https://arxiv.org/abs/2511.23473"><strong>ThetaEvolve</strong></a><sup><a href="#ref2">[2]</a></sup>, and <a href="https://arxiv.org/abs/2601.16175"><strong>TTT-Discover</strong></a><sup><a href="#ref3">[3]</a></sup> have demonstrated impressive results by combining LLMs with evolutionary frameworks to discover and improve algorithms. These systems are carefully engineered, with explicit population management, selection, and mutation pipelines.</p>
+<p>Recent systems like <a href="https://arxiv.org/abs/2506.13131"><strong>AlphaEvolve</strong></a><sup><a href="#ref1">[1]</a></sup>, <a href="https://arxiv.org/abs/2509.19349"><strong>ShinkaEvolve</strong></a><sup><a href="#ref2">[2]</a></sup>, <a href="https://arxiv.org/abs/2511.23473"><strong>ThetaEvolve</strong></a><sup><a href="#ref3">[3]</a></sup>, and <a href="https://arxiv.org/abs/2601.16175"><strong>TTT-Discover</strong></a><sup><a href="#ref4">[4]</a></sup> have demonstrated impressive results by combining LLMs with evolutionary frameworks to discover and improve algorithms. These systems are carefully engineered, with explicit population management, selection, and mutation pipelines.</p>
 
 <p>At the same time, coding agents like Claude Code have become increasingly capable. They can write and execute code, analyze results, search the web, and run parallel tasks&mdash;all within a single long-running session.</p>
 
@@ -563,7 +567,7 @@
   <li><strong>Aspiration prompting</strong>: When the agent appeared to plateau, we provided a one-sentence prompt indicating that higher scores were achievable (<a href="#aspiration-prompting">see next section</a>)</li>
 </ol>
 
-<p>This is all we used&mdash;no population of programs, no genetic operators, and no explicit evolutionary loop. We used <strong>Claude Code (Opus 4.6)</strong> and allowed it to run autonomously in skip-permissions mode.</p>
+<p>This is all we used&mdash;no population of programs, no genetic operators, and no explicit evolutionary loop. We used <strong>Claude Code (Opus 4.6)</strong> and allowed it to run autonomously in skip-permissions mode. The initial setup for each task can be found <a href="https://github.com/tengxiaoliu/autoevolver/tree/main/tasks">here</a>.</p>
 
 <img src="assets/setup.png" alt="Minimal experimental setup: problem description, initial solution, evaluation script, and aspiration prompt" style="max-width: 60%; display: block; margin: 24px auto;">
 
@@ -611,7 +615,13 @@
 
 <h2 id="behaviors">What Claude Code Actually Did</h2>
 
-<p>Beyond final performance, the agent exhibits several notable emergent behaviors. By analyzing full interaction trajectories (119 hours, 2,762 messages, and 1,486 tool calls across all sessions), we identify a set of consistent and striking patterns.</p>
+<p>Beyond final performance, the agent exhibits several notable emergent behaviors.</p>
+
+<blockquote style="border-left-color: var(--accent); background: var(--accent-light); font-size: 1em; color: var(--bold-num); font-weight: 500;">
+  <p>Across all three problems, the agent ran autonomously for a combined <strong>88 hours</strong> of active computation (2,762 messages, 1,486 tool calls) &mdash; <strong>16.6 hours</strong> on circle packing, <strong>30.8 hours</strong> on Erd&#337;s, and <strong>40.4 hours</strong> on AC1. The only user intervention in the middle was the <strong>aspiration prompt</strong>.</p>
+</blockquote>
+
+<p>By analyzing these trajectories, we observe a set of consistent and striking behaviors. (Some of the patterns below were in fact identified by Claude Code analyzing its own logs!)</p>
 
 <h3>1. Strategic Web Research</h3>
 
@@ -796,14 +806,15 @@ $$\max_{|t|\le 1/2} (f * f)(t) \;\ge\; C_1 \left(\int f\right)^2$$
 <ol class="footer-notes">
   <li>The solutions for all three problems are available in the <a href="https://github.com/tengxiaoliu/autoevolver/tree/main/results"><code>results/</code></a> directory of <a href="https://github.com/tengxiaoliu/autoevolver">this repository</a>.</li>
   <li>Circle packing scores are evaluated with a feasibility tolerance of 1e&minus;6, consistent with ThetaEvolve&rsquo;s evaluator.</li>
-  <li>Conversation trajectories were captured using <a href="https://github.com/peteromallet/dataclaw">DataClaw</a> and analyzed across 119 hours of autonomous agent computation.</li>
+  <li>Conversation trajectories were captured using <a href="https://github.com/peteromallet/dataclaw">DataClaw</a> and analyzed across 88 hours of autonomous agent computation.</li>
 </ol>
 
 <h3 style="margin-top: 32px;">References</h3>
 <ol style="font-size: 0.9em; line-height: 1.6;">
   <li id="ref1">Novikov, Alexander et al. &ldquo;AlphaEvolve: A coding agent for scientific and algorithmic discovery.&rdquo; <em>ArXiv</em> abs/2506.13131 (2025).</li>
-  <li id="ref2">Wang, Yiping et al. &ldquo;ThetaEvolve: Test-time Learning on Open Problems.&rdquo; <em>ArXiv</em> abs/2511.23473 (2025).</li>
-  <li id="ref3">Yuksekgonul, Mert et al. &ldquo;Learning to Discover at Test Time.&rdquo; <em>ArXiv</em> abs/2601.16175 (2026).</li>
+  <li id="ref2">Lange, Robert Tjarko et al. &ldquo;ShinkaEvolve: Towards Open-Ended And Sample-Efficient Program Evolution.&rdquo; <em>ArXiv</em> abs/2509.19349 (2025).</li>
+  <li id="ref3">Wang, Yiping et al. &ldquo;ThetaEvolve: Test-time Learning on Open Problems.&rdquo; <em>ArXiv</em> abs/2511.23473 (2025).</li>
+  <li id="ref4">Yuksekgonul, Mert et al. &ldquo;Learning to Discover at Test Time.&rdquo; <em>ArXiv</em> abs/2601.16175 (2026).</li>
 </ol>
 
 </div>
